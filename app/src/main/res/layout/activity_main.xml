@@ -1,116 +1,147 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
+    android:orientation="vertical"
+    android:gravity="bottom"
     android:background="@drawable/bg3" >
 
-    <TextView
-        android:id="@+id/text"
-        android:layout_width="fill_parent"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true" />
+        android:orientation="vertical">
+        <!-- 显示wifi信息 -->
+        <TextView
+            android:id="@+id/wifiInfoText"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:hint="显示wifi信息" />
+        <!-- 显示图片用 -->
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentTop="true" />
+        <!--  3个imageBtn, 及其状态显示文字   -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
 
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_alignParentTop="true" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical">
 
-    <ImageButton
-        android:id="@+id/goButton"
-        android:layout_width="wrap_content"
+                <ImageButton
+                    android:id="@+id/led01Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="#00000000"
+                    android:src="@drawable/ledon" />
+
+                <TextView
+                    android:id="@+id/led01stateText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="LED1" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:id="@+id/led02Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="#00000000"
+                    android:src="@drawable/ledon" />
+
+                <TextView
+                    android:id="@+id/led02stateText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="LED2" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageButton
+                    android:id="@+id/led03Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="#00000000"
+                    android:src="@drawable/ledon" />
+
+                <TextView
+                    android:id="@+id/led03stateText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="LED3" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 显示温湿度时数据信息 -->
+        <TextView
+            android:id="@+id/iotDateText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="100dp"
+            android:text="Large Text"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+        <!-- 文字输入框, 显示运行日志信息 -->
+        <EditText
+            android:id="@+id/editText1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:inputType="textMultiLine" />
+    </LinearLayout>
+
+    <!--放在底部-->
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginLeft="14dp"
-        android:background="#00000000"
-        android:src="@drawable/go1" />
-
-    <ImageButton
-        android:id="@+id/quitButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/goButton"
-        android:layout_centerInParent="true"
-        android:background="#00000000"
-        android:src="@drawable/poweroff" />
-
-    <ImageButton
-        android:id="@+id/ledButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_below="@+id/text"
-        android:background="#00000000"
-        android:src="@drawable/ledon" />
-
-    <ImageButton
-        android:id="@+id/ImageButton02"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/text"
-        android:background="#00000000"
-        android:src="@drawable/ledon" />
-
-    <ImageButton
-        android:id="@+id/ImageButton01"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/ledButton"
-        android:layout_centerHorizontal="true"
-        android:background="#00000000"
-        android:src="@drawable/ledon" />
-
-    <TextView
-        android:id="@+id/TextView02"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true" />
-
-    <TextView
-        android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/ledButton"
-        android:layout_toLeftOf="@+id/ImageButton01"
-        android:text="TextView" />
-
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/ImageButton02"
-        android:layout_toRightOf="@+id/ledButton"
-        android:text="TextView" />
-
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/ImageButton02"
-        android:layout_toRightOf="@+id/ImageButton01"
-        android:text="TextView" />
-
-    <EditText
-        android:id="@+id/editText1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/goButton"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:inputType="textMultiLine" />
-
-    <TextView
-        android:id="@+id/textView4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/textView1"
-        android:layout_alignRight="@+id/textView3"
-        android:layout_below="@+id/textView1"
-        android:layout_marginTop="100dp"
-        android:text="Large Text"
-        android:textAppearance="?android:attr/textAppearanceLarge" />
-
-</RelativeLayout>
+        android:orientation="vertical">
+        <!-- 启动/停止服务器btn -->
+        <TableLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:stretchColumns = "1">
+            <TableRow>
+                <ImageButton
+                    android:id="@+id/goButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="#00000000"
+                    android:src="@drawable/go1" />
+                <ImageButton
+                    android:id="@+id/icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="#00000000"
+                    android:src="@drawable/icon" />
+                <ImageButton
+                    android:id="@+id/quitButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="#00000000"
+                    android:src="@drawable/poweroff" />
+            </TableRow>
+        </TableLayout>
+        <!-- 显示收发计数文本-->
+        <TextView
+            android:id="@+id/numCountText"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:hint="显示计数信息" />
+    </LinearLayout>
+</LinearLayout>
