@@ -12,7 +12,6 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.PowerManager;
-import android.os.StrictMode;
 import android.support.v7.app.AppCompatActivity;
 import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
@@ -42,42 +41,47 @@ import java.net.SocketException;
 @SuppressLint("NewApi")
 public class MainActivity extends AppCompatActivity {
 
-    private TextView show;
-    private TextView mynum;
+    //定义变量
+    private TextView wifiInfoText;
+    private TextView myNum;
 
-    private TextView ledText1;
-    private TextView ledText2;
-    private TextView ledText3;
+    private TextView led01stateText;
+    private TextView led02stateText;
+    private TextView led03stateText;
 
-    private TextView tempText1;
+    private TextView iotDateText;
 
     private ImageButton goButton;
     private ImageButton quitButton;
 
-    private ImageButton ledButton;     //灯1
-    private ImageButton ImageButton1;  //灯2
-    private ImageButton ImageButton2;  //灯3
+    //imagebtn
+    private ImageButton led01Button;  //灯1按键
+    private ImageButton led02Button;  //灯2按键
+    private ImageButton led03Button;  //灯3按键
 
     long my_num = 0;					//执行次数记时间
     long getDataCount = 0;
     long getErrCon = 0;
     String LEDCTRL;
 
+    //定义线程
     private Thread myThread;
     private Thread downThread;
 
     private EditText displayText = null;
 
-    private boolean ledChange = false;   		//判断灯1是否变化
-    private boolean ledState = false;            //灯1的状态
-    private boolean ledChange1 = false;   		//判断灯2是否变化
-    private boolean ledState1 = false;            //灯2的状态
-    private boolean ledChange2 = false;   		//判断灯3是否变化
-    private boolean ledState2 = false;            //灯3的状态
+    //标志位
+    private boolean ledChange1 = false;   		 //判断灯1是否变化
+    private boolean ledState1 = false;           //灯1的状态
+    private boolean ledChange2 = false;   		 //判断灯2是否变化
+    private boolean ledState2 = false;           //灯2的状态
+    private boolean ledChange3 = false;   	     //判断灯3是否变化
+    private boolean ledState3 = false;           //灯3的状态
 
-    private boolean StartOrStop = false;
+    private boolean StartOrStop = false;         //启动监听标志位
 
-    private ImageView image;
+    //显示图片
+    private ImageView image;                     //not used
     private int picNum = 0;
 
     String fileName = Environment.getExternalStorageDirectory() + "/"
@@ -122,27 +126,6 @@ public class MainActivity extends AppCompatActivity {
 
     };
 
-    /**
-     * KeyBack
-     * @param keyCode
-     * @param event
-     * @return
-     */
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) { // 返回按键
-        if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
-            dialog();
-        }
-        return super.onKeyDown(keyCode, event);
-    }
-
-    /**
-     * getVersion
-     * @return
-     */
-    public static String GetSystemVersion() {
-        return android.os.Build.VERSION.RELEASE;
-    }
 
     /**
      * onCreate
@@ -154,69 +137,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // 兼容android不同版本
-        String strVer = GetSystemVersion();
-        strVer = strVer.substring(0, 3).trim();
-        float fv = Float.valueOf(strVer);
-        if (fv > 2.3) {
-            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
-                    .detectDiskReads().detectDiskWrites().detectNetwork()
-                    .penaltyLog().build());
-            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
-                    .detectLeakedSqlLiteObjects().penaltyLog().penaltyDeath()
-                    .build());
-        }
 
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-
-        show = (TextView) findViewById(R.id.text);			//展示文字信息
-        mynum = (TextView) findViewById(R.id.TextView02);
-
-        ledText1 = (TextView) findViewById(R.id.textView1);	//灯1的文字提示
-        ledText2 = (TextView) findViewById(R.id.textView2);	//灯2的文字提示
-        ledText3 = (TextView) findViewById(R.id.textView3);	//灯3的文字提示
-
-        tempText1 = (TextView) findViewById(R.id.textView4);//温湿度显示
-
-        image = (ImageView) findViewById(R.id.imageView);
-
-        goButton = (ImageButton) findViewById(R.id.goButton);			//监听按键
-
-        ledButton = (ImageButton) findViewById(R.id.ledButton);			//灯1按键
-        ImageButton1 = (ImageButton) findViewById(R.id.ImageButton01);	//灯2按键
-        ImageButton2 = (ImageButton) findViewById(R.id.ImageButton02);	//灯3按键
-        quitButton = (ImageButton) findViewById(R.id.quitButton);		//退出按键
-
-        //显示后台打印信息
-        displayText = (EditText)findViewById(R.id.editText1);
-        displayText.setMovementMethod(ScrollingMovementMethod.getInstance());
-        displayText.setSelection(displayText.getText().length(), displayText.getText().length());
-        displayText.getText().append("务必先将手机WIFI连接到板子热点WIFIBOARD,然后点击右下三角箭头连接到板子服务器，IP地址和PORT端口在eclipse里面修改");
-        displayText.setEnabled(false);
-
-        //显示连接提示
-        show.setText("CSIC TCPIP PROTOCOL OF WIFI\r\n connect to board server ip:192.168.1.8  port:1001\r\n");
-        show.setTextColor(0xffff0000);	//显示提示信息
-        //show.append(fileName);
-
-        //温湿度的显示
-        mynum.setTextColor(0xFFFFFFFF);
-        tempText1.setTextColor(0xFFFFFFFF);
-        tempText1.setText("\r\n创思通信\r\n");
-        //tempText1.setBackgroundColor(0xFFFFFFFF);
-        tempText1.setBackgroundColor(android.graphics.Color.BLACK);
-        tempText1.getBackground().setAlpha(70);
-        tempText1.setGravity(Gravity.CENTER);
-        tempText1.setVisibility(View.GONE);
-
-        //三个灯的文字提示
-        ledText1.setTextColor(0xFFFFFFFF);
-        ledText2.setTextColor(0xFFFFFFFF);
-        ledText3.setTextColor(0xFFFFFFFF);
-        //LED状态指示
-        ledText1.setText(".");
-        ledText2.setText(".");
-        ledText3.setText(".");
+        //引用并初始化控件
+        initUI();
 
         if (mode == 0) { // 路由器模式
             if (!isApEnabled()) {
@@ -248,38 +172,38 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        ledButton.setOnClickListener(new Button.OnClickListener() {
+        led01Button.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
-                ledChange = true;									//按键变化了 灯1
-                ledState = !ledState;
-                if (ledState == true) {
-                    ledButton.setImageResource(R.drawable.ledoff);
-                } else {
-                    ledButton.setImageResource(R.drawable.ledon);
-                }
-            }
-        });
-
-        ImageButton1.setOnClickListener(new Button.OnClickListener() {
-            public void onClick(View v) {
-                ledChange1 = true;									//按键变化了 灯2
+                ledChange1 = true;									//按键变化了 灯1
                 ledState1 = !ledState1;
                 if (ledState1 == true) {
-                    ImageButton1.setImageResource(R.drawable.ledoff);
+                    led01Button.setImageResource(R.drawable.ledoff);
                 } else {
-                    ImageButton1.setImageResource(R.drawable.ledon);
+                    led01Button.setImageResource(R.drawable.ledon);
                 }
             }
         });
 
-        ImageButton2.setOnClickListener(new Button.OnClickListener() {
+        led02Button.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
-                ledChange2 = true;									//按键变化了 灯3
+                ledChange2 = true;									//按键变化了 灯2
                 ledState2 = !ledState2;
                 if (ledState2 == true) {
-                    ImageButton2.setImageResource(R.drawable.ledoff);
+                    led02Button.setImageResource(R.drawable.ledoff);
                 } else {
-                    ImageButton2.setImageResource(R.drawable.ledon);
+                    led02Button.setImageResource(R.drawable.ledon);
+                }
+            }
+        });
+
+        led03Button.setOnClickListener(new Button.OnClickListener() {
+            public void onClick(View v) {
+                ledChange3 = true;									//按键变化了 灯3
+                ledState3 = !ledState3;
+                if (ledState3 == true) {
+                    led03Button.setImageResource(R.drawable.ledoff);
+                } else {
+                    led03Button.setImageResource(R.drawable.ledon);
                 }
             }
         });
@@ -293,27 +217,49 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * 退出对话框
+     * 引用并初始化控件
      */
-    public void dialog() {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(
-                MainActivity.this);
-        builder.setMessage("亲,真的要退出吗？")
-                .setPositiveButton("退出", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface arg0, int arg1) {
-                        if (isApEnabled()) {
-                            setWifiApEnabled(false);
-                        }
-                        System.exit(0);
-                    }
-                })
-                .setNegativeButton("不是", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface arg0, int arg1) {
-                    }
-                });
-        AlertDialog ad = builder.create();
-        ad.show();
+    public void initUI(){
+        wifiInfoText = findViewById(R.id.wifiInfoText);			//顶部文字信息
+        myNum = findViewById(R.id.numCountText);                  //底部计数(收发字节)
+
+        led01stateText = findViewById(R.id.led01stateText);	//灯1的文字提示
+        led02stateText = findViewById(R.id.led02stateText);	//灯2的文字提示
+        led03stateText = findViewById(R.id.led03stateText);	//灯3的文字提示
+
+        iotDateText = findViewById(R.id.iotDateText);   //温湿度显示
+
+        image = findViewById(R.id.imageView);               //显示图片用
+        goButton =  findViewById(R.id.goButton);			//监听启动按键
+
+        led01Button =  findViewById(R.id.led01Button);		//灯1按键
+        led02Button =  findViewById(R.id.led02Button);  	//灯2按键
+        led03Button = findViewById(R.id.led03Button);	    //灯3按键
+        quitButton =  findViewById(R.id.quitButton);		//退出按键
+        displayText = findViewById(R.id.editText1);         //显示日志信息
+
+        //显示后台打印信息
+        displayText.setMovementMethod(ScrollingMovementMethod.getInstance());
+        displayText.setSelection(displayText.getText().length(), displayText.getText().length());
+        displayText.getText().append("务必先将手机WIFI连接到板子热点WIFIBOARD,然后点击右下三角箭头连接到板子服务器，IP地址和PORT端口在eclipse里面修改");
+        displayText.setEnabled(false);
+
+        //显示连接提示
+        wifiInfoText.setText("CSIC TCPIP PROTOCOL OF WIFI\r\n connect to board server ip:192.168.1.8  port:1001\r\n");
+        wifiInfoText.setTextColor(0xffff0000);	//显示提示信息
+        //show.append(fileName);
+
+        //温湿度的显示
+        myNum.setTextColor(0xFFFFFFFF);
+        iotDateText.setTextColor(0xFFFFFFFF);
+        iotDateText.setText("\r\n创思通信\r\n");
+        iotDateText.setBackgroundColor(android.graphics.Color.BLACK);
+        iotDateText.getBackground().setAlpha(70);
+        iotDateText.setGravity(Gravity.CENTER);
+        iotDateText.setVisibility(View.GONE);
+
     }
+
 
     /**
      * 设置AP
@@ -454,7 +400,7 @@ public class MainActivity extends AppCompatActivity {
         if(getDataCount<5) 	//发送5条的开关灯命令
         {
 
-            if(ledState == true)
+            if(ledState1 == true)
             {
                 LEDCTRL="io_ctrl=CLOSELED1#";
             }
@@ -465,7 +411,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-            if(ledState1 == true)
+            if(ledState2 == true)
             {
                 LEDCTRL+="=CLOSELED2#";
             }
@@ -475,7 +421,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
 
-            if(ledState2 == true)
+            if(ledState3 == true)
             {
                 LEDCTRL+="=CLOSELED3#";
             }
@@ -576,16 +522,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    /**
-     * 创建menu,再加功能
-     * @param menu
-     * @return
-     */
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.activity_main, menu);
-        return true;
-    }
+
 
     /**
      * 获取pic线程
@@ -606,8 +543,8 @@ public class MainActivity extends AppCompatActivity {
                 my_num++;
                 if(my_num > 10000)
                     my_num = 0;
-                mynum.setText(Long.toString(my_num));
-                mynum.append(":");
+                myNum.setText(Long.toString(my_num));
+                myNum.append(":");
 
                 if(displayText.getText().length()>60)
                 {
@@ -627,7 +564,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 getDataCount++;
-                mynum.append(Long.toString(getDataCount));
+                myNum.append(Long.toString(getDataCount));
             }
             else
             {
@@ -653,5 +590,58 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+
+    /**
+     * 退出对话框
+     */
+    public void dialog() {
+        final AlertDialog.Builder builder = new AlertDialog.Builder(
+                MainActivity.this);
+        builder.setMessage("亲,真的要退出吗？")
+                .setPositiveButton("退出", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface arg0, int arg1) {
+                        if (isApEnabled()) {
+                            setWifiApEnabled(false);
+                        }
+                        System.exit(0);
+                    }
+                })
+                .setNegativeButton("不是", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface arg0, int arg1) {
+                    }
+                });
+        AlertDialog ad = builder.create();
+        ad.show();
+    }
+
+
+    /**
+     * KeyBack
+     * @param keyCode
+     * @param event
+     * @return
+     */
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) { // 返回按键
+        if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
+            dialog();
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    /**
+     * 创建menu,再加功能
+     * @param menu
+     * @return
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.activity_main, menu);
+        return true;
+    }
+
+
 }
+
+
 
