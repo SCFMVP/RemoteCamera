@@ -245,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
         displayText.setEnabled(false);
 
         //显示连接提示
-        wifiInfoText.setText("CSIC TCPIP PROTOCOL OF WIFI\r\n connect to board server ip:192.168.1.8  port:1001\r\n");
+        wifiInfoText.setText("CSIC TCPIP PROTOCOL OF WIFI\r\nConnect to board server ip:192.168.1.8  port:1001\r\n");
         wifiInfoText.setTextColor(0xffff0000);	//显示提示信息
         //show.append(fileName);
 
