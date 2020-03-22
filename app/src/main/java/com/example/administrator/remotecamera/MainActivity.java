@@ -38,12 +38,7 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
 
-//import android.annotation.SuppressLint;
-//import android.annotation.TargetApi;
-//import android.os.StrictMode;
 
-//@TargetApi(Build.VERSION_CODES.GINGERBREAD)
-//@SuppressLint("NewApi")
 @SuppressLint("NewApi")
 public class MainActivity extends AppCompatActivity {
 
@@ -111,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
     private int mode = 1; // 模式选择 0：STA, 1：AP
     private boolean debug = false; // 是否调试输出
 
-
+    /*handle队列, UI用*/
     Handler myHandler = new Handler() {
         public void handleMessage(Message msg) { // 处理消息
             switch (msg.what) {
@@ -127,6 +122,12 @@ public class MainActivity extends AppCompatActivity {
 
     };
 
+    /**
+     * KeyBack
+     * @param keyCode
+     * @param event
+     * @return
+     */
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) { // 返回按键
         if (keyCode == KeyEvent.KEYCODE_BACK && event.getRepeatCount() == 0) {
@@ -135,10 +136,18 @@ public class MainActivity extends AppCompatActivity {
         return super.onKeyDown(keyCode, event);
     }
 
+    /**
+     * getVersion
+     * @return
+     */
     public static String GetSystemVersion() {
         return android.os.Build.VERSION.RELEASE;
     }
 
+    /**
+     * onCreate
+     * @param savedInstanceState
+     */
     @Override
     public void onCreate(Bundle savedInstanceState) {
 
@@ -283,9 +292,9 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    /**************************************
+    /**
      * 退出对话框
-     *************************************/
+     */
     public void dialog() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(
                 MainActivity.this);
@@ -306,9 +315,11 @@ public class MainActivity extends AppCompatActivity {
         ad.show();
     }
 
-    /**********************************************
-     * 打开设置AP
-     *************************************************/
+    /**
+     * 设置AP
+     * @param enabled
+     * @return
+     */
     public boolean setWifiApEnabled(boolean enabled) {
         if (enabled) {
             wifiManager.setWifiEnabled(false);
@@ -335,9 +346,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /*************************************************
-     * 获取wifiap 状态
-     **************************************************/
+    /**
+     * 获取WiFi信息
+     * @return
+     */
     public int getWifiApState() {
         try {
             Method method = wifiManager.getClass().getMethod("getWifiApState");
@@ -348,15 +360,19 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * AP状态
+     * @return
+     */
     public boolean isApEnabled() {
         int state = getWifiApState();
         return WIFI_AP_STATE_ENABLING == state
                 || WIFI_AP_STATE_ENABLED == state;
     }
 
-    /***************************************************
-     * UDP服务
-     ********************************************************/
+    /**
+     * 启动UDP服务
+     */
     public void udpServer() {
         int tmp = 0;
         if (debug) {
@@ -385,9 +401,11 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-    /***************************************************
-     * TCP服务
-     ********************************************************/
+
+    /**
+     * 启动TCP服务(Client)
+     * @return
+     */
     private int loadTCPIP() {
 
         if (mySocket == null || mySocket.isClosed()) { // 创建套接字
@@ -542,8 +560,6 @@ public class MainActivity extends AppCompatActivity {
                     displayText.getText().append(Msg);
 
                     String spStr[] = Msg.split("#");
-                    //tempText1.setText("\r\n官网www.csgsm.com\r\n淘宝csic.taobao.com:");
-                    //tempText1.append(Msg);
                 }
                 else
                 {
@@ -560,15 +576,20 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * 创建menu,再加功能
+     * @param menu
+     * @return
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.activity_main, menu);
         return true;
     }
 
-    /**************************
-     * 线程：获取图片
-     **************************/
+    /**
+     * 获取pic线程
+     */
     Runnable downloadRunnable = new Runnable() {
         public void run() {
             myHandler.postDelayed(this, 1000); // 间隔一段时间，再请求下一帧
@@ -623,9 +644,9 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    /************************
-     * 线程： 接收UDP广播
-     **************************/
+    /**
+     * UDP广播
+     */
     Runnable udpRunnable = new Runnable() {
         public void run() {
             udpServer();
