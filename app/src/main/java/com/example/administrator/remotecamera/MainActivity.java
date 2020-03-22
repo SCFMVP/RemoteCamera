@@ -37,6 +37,11 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
 
+/**
+ * Author:later
+ * Time:2020/3/22 20:16
+ * Modify:
+ */
 
 @SuppressLint("NewApi")
 public class MainActivity extends AppCompatActivity {
@@ -110,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
     private int mode = 1; // 模式选择 0：STA, 1：AP
     private boolean debug = false; // 是否调试输出
 
-    /*handle队列, UI用*/
+    /*handle队列, UI用, 啥事也没做*/
     Handler myHandler = new Handler() {
         public void handleMessage(Message msg) { // 处理消息
             switch (msg.what) {
@@ -136,12 +141,11 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
         wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         //引用并初始化控件
         initUI();
 
+        //此处mode=1,AP模式,
         if (mode == 0) { // 路由器模式
             if (!isApEnabled()) {
                 setWifiApEnabled(true); // 打开热点
@@ -172,6 +176,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        //改变标志位,TCP根据标志位发送相应数据(没考虑发送失败的问题)
         led01Button.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
                 ledChange1 = true;									//按键变化了 灯1
@@ -241,7 +246,7 @@ public class MainActivity extends AppCompatActivity {
         //显示后台打印信息
         displayText.setMovementMethod(ScrollingMovementMethod.getInstance());
         displayText.setSelection(displayText.getText().length(), displayText.getText().length());
-        displayText.getText().append("务必先将手机WIFI连接到板子热点WIFIBOARD,然后点击右下三角箭头连接到板子服务器，IP地址和PORT端口在eclipse里面修改");
+        displayText.getText().append("务必先将手机WIFI连接到板子热点WIFIBOARD,然后点击右下三角箭头连接到板子服务器，IP地址和PORT端口在AS里面修改");
         displayText.setEnabled(false);
 
         //显示连接提示
@@ -262,7 +267,9 @@ public class MainActivity extends AppCompatActivity {
 
 
     /**
-     * 设置AP
+     * 设置AP(打开手机热点)
+     * SSID: WIFIBOARD
+     * PWD: NONE
      * @param enabled
      * @return
      */
@@ -280,7 +287,7 @@ public class MainActivity extends AppCompatActivity {
             apConfig.allowedProtocols.clear();
 
             apConfig.SSID = "WIFIBOARD"; // 手机热点的名字
-            apConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
+            apConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);  //不设置密码
 
             Method method = wifiManager.getClass().getMethod(
                     "setWifiApEnabled", WifiConfiguration.class, Boolean.TYPE);
@@ -293,7 +300,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * 获取WiFi信息
+     * 获取WiFi AP信息
+     * 手机自己开的热点
      * @return
      */
     public int getWifiApState() {
@@ -308,6 +316,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * AP状态
+     * 手机自己开的热点
      * @return
      */
     public boolean isApEnabled() {
@@ -317,29 +326,31 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * 启动UDP服务
+     * 启动UDP服务8080监听数据
+     * 同时用TCP获取图片数据
      */
     public void udpServer() {
-        int tmp = 0;
+        int len = 0;
         if (debug) {
             Log.v("system", "enter udpServer");
         }
         try {
-            DatagramSocket serSocket = new DatagramSocket(8080);
+            DatagramSocket serSocket = new DatagramSocket(8080);    //监听8080端口
             byte data[] = new byte[1024];
             DatagramPacket pack = new DatagramPacket(data, data.length);
             try {
+                //启用TCP协议请求图片数据
                 do {
                     serSocket.receive(pack);
                     sourceAddr = pack.getSocketAddress();
-                    tmp = pack.getLength();
-                    String recvData = new String(data, 0, tmp);
+                    len = pack.getLength();
+                    String recvData = new String(data, 0, len);    //读取UDP数据
                     Log.v("system", "received(" + sourceAddr + "): " + recvData);
                     if (downThread == null) {
                         downThread = new Thread(downloadRunnable);
                         downThread.start();
                     }
-                } while (tmp > 0);
+                } while (len > 0);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -354,30 +365,28 @@ public class MainActivity extends AppCompatActivity {
      */
     private int loadTCPIP() {
 
-        if (mySocket == null || mySocket.isClosed()) { // 创建套接字
-
+        if (mySocket == null || mySocket.isClosed()) {      // 无socket则创建套接字
             displayText.getText().append("#newsocket#");
             mySocket = new Socket();
             if (sourceAddr != null) {
                 displayText.getText().append("#infra#");
-                mySocketAddr = new InetSocketAddress( 	// STA
+                mySocketAddr = new InetSocketAddress(  	// STA
                         ((InetSocketAddress) sourceAddr).getAddress()
                                 .getHostAddress(), 5000);
             } else {
-                mySocketAddr = new InetSocketAddress("192.168.1.8", 1001); // /AP
+                mySocketAddr = new InetSocketAddress("192.168.1.8", 1001); // 远程AP连接参数
 
             }
-
-            try { // 连接
+            // 连接开发板Socket
+            try {
                 mySocket.connect(mySocketAddr, TIMEOUT_CONNETCT);
             } catch (IOException e2) {
                 getErrCon++;
-                if(getErrCon > 20)			//连接错误次数超过20次
-                {
-                    Toast toast1 = Toast.makeText(MainActivity.this, "请连WIFI无线接到板子，并且开启好板子为服务器模式，否则无法正常通过TCPIP连接到板子",
-                            Toast.LENGTH_LONG);
-                    toast1.show();
+                if(getErrCon > 20) {        //连接错误次数超过20次
+                    Toast.makeText(MainActivity.this, "请连WIFI无线接到板子，并且开启好板子为服务器模式，否则无法正常通过TCPIP连接到板子",
+                            Toast.LENGTH_LONG).show();
                 }
+                //连接失败后关闭socket
                 try {
                     mySocket.close();
                     return 0;
@@ -390,6 +399,7 @@ public class MainActivity extends AppCompatActivity {
         }
         getErrCon = 0;  					//已经连接成功，错误归零
         OutputStream outputstream = null; 	// 打开输出流
+        //获取数据流
         try {
             outputstream = mySocket.getOutputStream();
         } catch (IOException e) {
@@ -400,57 +410,30 @@ public class MainActivity extends AppCompatActivity {
         if(getDataCount<5) 	//发送5条的开关灯命令
         {
 
-            if(ledState1 == true)
-            {
+            if(ledState1 == true) {
                 LEDCTRL="io_ctrl=CLOSELED1#";
             }
-            else
-            {
+            else {
                 LEDCTRL="io_ctrl=OPENLED1#";
             }
-
-
-
-            if(ledState2 == true)
-            {
+            if(ledState2 == true) {
                 LEDCTRL+="=CLOSELED2#";
             }
-            else
-            {
+            else {
                 LEDCTRL+="=OPENLED2#";
             }
-
-
-            if(ledState3 == true)
-            {
+            if(ledState3 == true) {
                 LEDCTRL+="=CLOSELED3#";
             }
-            else
-            {
+            else {
                 LEDCTRL+="=OPENLED3#";
             }
 
+            //发送开关灯指令数据
             try {
                 outputstream.write(LEDCTRL.getBytes()); // 发送命令：开关灯
                 displayText.getText().append(LEDCTRL);	//手机APP显示信息
                 LEDCTRL="NULL";
-                return 0;
-            } catch (IOException e) {
-                Log.e("TCP", "outputstream.write");
-                try {
-                    mySocket.close();
-                } catch (IOException e1) {
-                    e1.printStackTrace();
-                }
-                e.printStackTrace();
-            }
-        }
-
-        if(getDataCount==5)
-        {
-            try {
-                outputstream.write("=csic.taobao.com#".getBytes()); // 发送命令：发送淘宝广告
-                displayText.setText("=csic.taobao.com#");	//手机APP显示信息
                 return 0;
             } catch (IOException e) {
                 Log.e("TCP", "outputstream.write");
@@ -522,17 +505,15 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
-
     /**
      * 获取pic线程
      */
     Runnable downloadRunnable = new Runnable() {
         public void run() {
             myHandler.postDelayed(this, 1000); // 间隔一段时间，再请求下一帧
-            if(StartOrStop)	//开启了监听按钮
-            {
-                int sucess = loadTCPIP();
+            if(StartOrStop) {               //开启了监听按钮
+                //启动TCP服务
+                int sucess = loadTCPIP();   //启动TCP服务
                 if (sucess == 1) {
                     if (debug) {
                         Log.v("TCP", "load success");
@@ -540,36 +521,35 @@ public class MainActivity extends AppCompatActivity {
                     //myHandler.obtainMessage(UPDATE_UI).sendToTarget(); // 发送更新ui的消息
                 }
 
+                //更新计数显示
                 my_num++;
                 if(my_num > 10000)
                     my_num = 0;
                 myNum.setText(Long.toString(my_num));
                 myNum.append(":");
 
-                if(displayText.getText().length()>60)
-                {
+                //清空日志消息
+                if(displayText.getText().length()>60) {
                     displayText.getText().clear();
                 }
 
+                //优化可略
                 KeyguardManager mKeyguardManager = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
-                if (mKeyguardManager.inKeyguardRestrictedInputMode()) {	//检测到锁频，不刷新
+                if (mKeyguardManager.inKeyguardRestrictedInputMode()) { 	//检测到锁频，不刷新
                     // keyguard on
                     getDataCount=0;
                 }
-
+                //优化可略
                 PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-                if( !pm.isScreenOn() )  									//检测到屏幕关闭，不刷新
-                {
+                if( !pm.isScreenOn() ) {    //检测到屏幕关闭，不刷新
                     getDataCount=0;
                 }
 
-                getDataCount++;
+                getDataCount++;    //获取数据的次数
                 myNum.append(Long.toString(getDataCount));
             }
-            else
-            {
-                if(mySocket!=null && mySocket.isConnected())
-                {
+            else {//关闭socket
+                if(mySocket!=null && mySocket.isConnected()) {
                     try {
                         mySocket.close();
                     } catch (IOException e1) {
@@ -597,8 +577,8 @@ public class MainActivity extends AppCompatActivity {
     public void dialog() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(
                 MainActivity.this);
-        builder.setMessage("亲,真的要退出吗？")
-                .setPositiveButton("退出", new DialogInterface.OnClickListener() {
+        builder.setMessage("是否要退出？")
+                .setPositiveButton("YES", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface arg0, int arg1) {
                         if (isApEnabled()) {
                             setWifiApEnabled(false);
@@ -606,7 +586,7 @@ public class MainActivity extends AppCompatActivity {
                         System.exit(0);
                     }
                 })
-                .setNegativeButton("不是", new DialogInterface.OnClickListener() {
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface arg0, int arg1) {
                     }
                 });
