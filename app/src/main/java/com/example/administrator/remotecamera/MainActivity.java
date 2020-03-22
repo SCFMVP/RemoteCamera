@@ -236,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
         led02Button =  findViewById(R.id.led02Button);  	//灯2按键
         led03Button = findViewById(R.id.led03Button);	    //灯3按键
         quitButton =  findViewById(R.id.quitButton);		//退出按键
-        displayText = findViewById(R.id.editText1);         //显示日志信息
+        displayText = findViewById(R.id.logInfoText);         //显示日志信息
 
         //显示后台打印信息
         displayText.setMovementMethod(ScrollingMovementMethod.getInstance());
